@@ -3,17 +3,21 @@
 > 0.3.x only works with Solid v1.3.5 or later.
 > `useData` has been renamed to `useRouteData` and no longer takes arguments. Refer to documentation below.
 
-Solid App Router is a universal router for SolidJS that combines paradigms of React Router and Ember Router. Routes can be defined both in the JSX and as a JSON object for file-system based routing and supports Nested Routing.
+A router lets you change your view based on the URL in the browser. This allows your "single-page" application to simulate a traditional multipage site. To use Solid App Router, you specify components called Routes that depend on the value of the URL (the "path"), and the router handles the mechanism of swapping them in and out.
 
-It supports all Solid's SSR methods and has Solid's Transitions baked in, so use freely with Suspense, Resources, and Lazy components. Solid App Router also allows you to define a Data function that loads in parallel of the Routes to allow automatic fetch-as-you-render that removes client side request waterfalls.
+Solid App Router is a universal router for SolidJS - it works whether you're rendering on the client or on the server. It was inspired by and combines paradigms of React Router and the Ember Router. Routes can be defined directly in your app's template using JSX, but you can also pass your route configuration directly as an object. It also supports nested routing, so navigation can change a part of a component, rather than completely replacing it.
+
+It supports all of Solid's SSR methods and has Solid's transitions baked in, so use it freely with suspense, resources, and lazy components. Solid App Router also allows you to define a data function that loads parallel to the routes ([render-as-you-fetch](https://epicreact.dev/render-as-you-fetch/)).
 
 ## Getting Started
+
+### Set Up the Router
 
 ```sh
 > npm i solid-app-router
 ```
 
-Install then wrap your application with the Router component:
+Install `solid-app-router`, then wrap your root component with the Router component:
 
 ```jsx
 import { render } from "solid-js/web";
@@ -29,6 +33,71 @@ render(
   document.getElementById("app")
 );
 ```
+
+This sets up a context so that we can display the routes anywhere in the app.
+
+### Configure your Routes
+
+`solid-app-router` allows you to configure your routes using JSX:
+
+1. Use the `Routes` component to specify where the routes should appear in your app.
+
+
+```jsx
+import { Routes, Route } from "solid-app-router"
+
+export default function App() {
+  return (<>
+    <h1>My Site with Lots of Pages<h1/>
+    <Routes>
+
+    </Routes>
+  <>)
+}
+```
+
+2. Add each route using the `Route` component, specifying a path and an element to render when the user navigates to that path.
+
+```jsx
+import { Routes, Route } from "solid-app-router"
+
+import Home from "./pages/Home"
+import Users from "./pages/Users"
+
+export default function App() {
+  return (<>
+    <h1>My Site with Lots of Pages<h1/>
+    <Routes>
+      <Route path="/users" element={<Users/>} />
+      <Route path="/" element={<Home/>}>
+      <Route path="/about" element={<div>This site was made with Solid</div>}>
+    </Routes>
+  <>)
+}
+```
+
+3. Lazy-load route components
+
+This way, the `Users` and `Home` components will only load if you're navigating to `/users` or `/home`, respectively.
+
+```jsx
+import { lazy } from "solid-js";
+
+const Users = lazy(() => import("./pages/Home"));
+const Home = lazy(() => import("./pages/Users"));
+
+export default function App() {
+  return (<>
+    <h1>My Site with Lots of Pages<h1/>
+    <Routes>
+      <Route path="/users" element={<Users/>} />
+      <Route path="/" element={<Home/>}>
+      <Route path="/about" element={<div>This site was made with Solid</div>}>
+    </Routes>
+  <>)
+}```
+
+## Dynamic Routes
 
 ## JSX Based
 
