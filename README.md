@@ -5,7 +5,7 @@
 
 A router lets you change your view based on the URL in the browser. This allows your "single-page" application to simulate a traditional multipage site. To use Solid App Router, you specify components called Routes that depend on the value of the URL (the "path"), and the router handles the mechanism of swapping them in and out.
 
-Solid App Router is a universal router for SolidJS - it works whether you're rendering on the client or on the server. It was inspired by and combines paradigms of React Router and the Ember Router. Routes can be defined directly in your app's template using JSX, but you can also pass your route configuration directly as an object. It also supports nested routing, so navigation can change a part of a component, rather than completely replacing it.
+Solid App Router is a universal router for SolidJS - it works whether you're rendering on the client or on the server. It was inspired by and combines paradigms of React Router and the Ember Router. Routes can be defined directly in your app's template using JSX, but you can also pass your route configuration directly as an object. It also supports nested routing, so navigation can change a part of a component, rather than completely replacing it. 
 
 It supports all of Solid's SSR methods and has Solid's transitions baked in, so use it freely with suspense, resources, and lazy components. Solid App Router also allows you to define a data function that loads parallel to the routes ([render-as-you-fetch](https://epicreact.dev/render-as-you-fetch/)).
 
@@ -78,11 +78,11 @@ export default function App() {
 
 3. Lazy-load route components
 
-This way, the `Users` and `Home` components will only load if you're navigating to `/users` or `/home`, respectively.
+This way, the `Users` and `Home` components will only be loaded if you're navigating to `/users` or `/home`, respectively.
 
 ```jsx
 import { lazy } from "solid-js";
-
+import { Routes, Route } from "solid-app-router"
 const Users = lazy(() => import("./pages/Home"));
 const Home = lazy(() => import("./pages/Users"));
 
@@ -95,9 +95,89 @@ export default function App() {
       <Route path="/about" element={<div>This site was made with Solid</div>}>
     </Routes>
   <>)
-}```
+}
+```
 
+## Create Links to your Routes
+
+Use the `Link` component to create an anchor tag that takes you to a route:
+
+```jsx
+import { lazy } from "solid-js";
+import { Routes, Route, Link } from "solid-app-router"
+const Users = lazy(() => import("./pages/Home"));
+const Home = lazy(() => import("./pages/Users"));
+
+export default function App() {
+  return (<>
+    <h1>My Site with Lots of Pages<h1/>
+    <nav>
+      <Link href="/about">About</Link>
+      <Link href="/">Home</Link>
+    </nav>
+    <Routes>
+      <Route path="/users" element={<Users/>} />
+      <Route path="/" element={<Home/>}>
+      <Route path="/about" element={<div>This site was made with Solid</div>}>
+    </Routes>
+  <>)
+}
+```
+
+If you use `NavLink` instead of `Link`, the anchor tag will have an `active` class if its route is currently shown, and `inactive` otherwise. 
+
+Both of these components have the same props:
+
+| prop     | type    | description                                                                                                                                                                              |
+|----------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| href     | string  | The path of the route to navigate to. This will be resolved relative to the route that the link is in, but you can preface it with `/` to refer back to the root.                                                                                                                                                    |
+| noScroll | boolean | If true, turn off the default behavior of scrolling to the top of the new page                                                                                                           |
+| replace  | boolean | If true, don't add a new entry to the browser history. (By default, the new page will be added to the browser history, so pressing the back button will take you to the previous route.) |
+| state    | unknown | Push this value to the history stack                                                                                                                                                     |
+<!-- The benefit -->
 ## Dynamic Routes
+
+If you don't know the path ahead of time, you might want to treat part of the path as a flexible parameter that is passed on to the component. 
+
+```jsx
+import { lazy } from "solid-js";
+import { Routes, Route } from "solid-app-router"
+const Users = lazy(() => import("./pages/Home"));
+const Home = lazy(() => import("./pages/Users"));
+const Home = lazy(() => import("./pages/User"));
+
+export default function App() {
+  return (<>
+    <h1>My Site with Lots of Pages<h1/>
+    <Routes>
+      <Route path="/users" element={<Users/>} />
+      <Route path="/users/:id" element={<User/>} />
+      <Route path="/" element={<Home/>}>
+      <Route path="/about" element={<div>This site was made with Solid</div>}>
+    </Routes>
+  <>)
+}
+```
+
+The colon indicates that `id` can be any string, and as long as the URL fits that pattern, the `User` component will show.
+
+You can then access that `id` from within a route component with `useParams`:
+
+```jsx
+import fetchUser ...
+
+export default function User () {
+
+  const params = useParams;
+
+  const [userData] = createResource(() => params.id, fetchUser);
+
+  return <a href={userData.twitter}>{userData.name}</a>
+}
+```
+
+## Data Functions
+In the above example, the User component is lazy-loaded and then the data is fetched. With route data functions, we can instead start fetching the data parallel to loading the route, so we can use the data as soon as possible.
 
 ## JSX Based
 
